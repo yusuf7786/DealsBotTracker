@@ -164,7 +164,12 @@ export default function SettingsPage() {
                 <div>
                   <p className="text-sm font-medium">{s.name}</p>
                   <p className="text-xs text-muted">
-                    {s.requiresApiKey ? (s.apiKeyConfigured ? 'API key configured' : 'API key missing — disabled') : 'Demo source'} · {s.status}
+                    {s.apiKeyConfigured
+                      ? 'Live — connected to real API'
+                      : s.requiresApiKey
+                        ? 'Simulated — no API key set yet'
+                        : 'Simulated — no public API available'}{' '}
+                    · {s.status}
                   </p>
                 </div>
                 <input type="checkbox" checked={s.enabled} onChange={(e) => toggleSource(s.id, e.target.checked)} className="h-4 w-4 accent-accent" />

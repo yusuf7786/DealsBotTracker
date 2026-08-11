@@ -90,6 +90,7 @@ model Listing {
   isFinancingPrice Boolean @default(false)
   isBundle         Boolean @default(false)
   reliabilityWeight Float  @default(0.7) // 0-1, source trust weighting used by market price engine
+  isSimulated      Boolean @default(false) // true when no real retailer API is connected yet (see Source.type)
 
   active        Boolean  @default(true)
   firstSeenAt   DateTime @default(now())

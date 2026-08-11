@@ -16,6 +16,7 @@ export interface DealCardData {
   sellerName: string;
   sellerRating: number | null;
   currency: string;
+  isSimulated: boolean;
 }
 
 const TIER_META: Record<DealCardData['tier'], { label: string; className: string; emoji: string }> = {
@@ -38,6 +39,12 @@ export function DealCard({ deal }: { deal: DealCardData }) {
         </span>
         <span className="text-[11px] font-medium text-muted">Score {deal.dealScore}/100</span>
       </div>
+
+      {deal.isSimulated && (
+        <span className="mb-2 inline-block rounded-full bg-muted/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
+          Simulated — no live API connected
+        </span>
+      )}
 
       <h3 className="mb-0.5 text-sm font-medium leading-snug">
         {deal.brand} {deal.productName}

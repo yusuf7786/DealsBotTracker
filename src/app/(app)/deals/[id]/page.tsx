@@ -151,13 +151,20 @@ export default async function DealDetailPage({ params }: { params: { id: string 
             {deal.bestListing.shippingCost !== null ? (toNumber(deal.bestListing.shippingCost) === 0 ? 'Free' : formatCurrency(toNumber(deal.bestListing.shippingCost), currency)) : '—'}
           </dd>
         </dl>
+        {deal.bestListing.isSimulated && (
+          <p className="mt-3 rounded-lg bg-muted/10 px-3 py-2 text-xs text-muted">
+            This price is simulated (no live {deal.bestListing.seller} API is connected yet). The button
+            below takes you to a real {deal.bestListing.seller} search for this product so you can check
+            the actual current price.
+          </p>
+        )}
         <a
           href={deal.bestListing.url}
           target="_blank"
           rel="noreferrer"
           className="mt-4 block w-full rounded-xl bg-accent px-4 py-2.5 text-center text-sm font-medium text-white hover:opacity-90"
         >
-          View Deal ↗
+          {deal.bestListing.isSimulated ? `Search on ${deal.bestListing.seller} ↗` : 'View Deal ↗'}
         </a>
       </div>
 

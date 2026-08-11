@@ -10,7 +10,7 @@ export async function GET() {
   for (const adapter of ALL_ADAPTERS) {
     await prisma.source.upsert({
       where: { key: adapter.meta.key },
-      update: { apiKeyConfigured: adapter.isConfigured() },
+      update: { apiKeyConfigured: adapter.hasRealCredentials() },
       create: {
         key: adapter.meta.key,
         name: adapter.meta.name,
@@ -19,11 +19,15 @@ export async function GET() {
         scanFrequencyMinutes: adapter.meta.defaultScanFrequencyMinutes,
         reliabilityWeight: adapter.meta.reliabilityWeight,
         requiresApiKey: adapter.meta.requiresApiKey,
-        apiKeyConfigured: adapter.isConfigured(),
+        apiKeyConfigured: adapter.hasRealCredentials(),
       },
     });
   }
 
-  const sources = await prisma.source.findMany({ orderBy: { name: 'asc' } });
+  // Only show sources that are still registered — old/retired adapter keys
+  // (e.g. from a previous source configuration) are left in the database
+  // for historical listings but shouldn't clutter the Settings list.
+  const currentKeys = ALL_ADAPTERS.map((a) => a.meta.key);
+  const sources = await prisma.source.findMany({ where: { key: { in: currentKeys } }, orderBy: { name: 'asc' } });
   return NextResponse.json(serialize(sources));
 }

@@ -1,10 +1,12 @@
 /**
- * Demo catalogue: realistic South African products/prices so the app is
- * fully usable (dashboard, deals, price history, notifications) before any
- * real retailer credentials are configured. See spec section 32 (Demo Mode).
+ * Product catalogue used to generate realistic simulated listings when a
+ * retailer adapter has no live API connected yet (see retailerAdapter.ts).
+ * Not tied to any single retailer — every configured source draws from the
+ * same catalogue with its own price bias, so simulated cross-retailer price
+ * comparison still looks realistic.
  */
 
-export interface DemoProductDef {
+export interface CatalogueProductDef {
   title: string;
   brand: string;
   category: string;
@@ -12,7 +14,7 @@ export interface DemoProductDef {
   condition?: 'new' | 'refurbished' | 'used';
 }
 
-export const DEMO_CATALOGUE: DemoProductDef[] = [
+export const PRODUCT_CATALOGUE: CatalogueProductDef[] = [
   { title: 'Samsung Galaxy S26 Ultra 256GB Titanium Black Dual-Sim', brand: 'Samsung', category: 'Smartphones', marketAnchor: 24999 },
   { title: 'Samsung Galaxy S26 Ultra 512GB Titanium Black Dual-Sim', brand: 'Samsung', category: 'Smartphones', marketAnchor: 28999 },
   { title: 'Apple iPhone 17 256GB Blue Dual-Sim', brand: 'Apple', category: 'Smartphones', marketAnchor: 26999 },
@@ -36,11 +38,3 @@ export const DEMO_CATALOGUE: DemoProductDef[] = [
   { title: 'Samsung Galaxy Watch 8 44mm Silver Bluetooth', brand: 'Samsung', category: 'Wearables', marketAnchor: 6499 },
   { title: 'Bosch Series 6 8kg Front Loader Washing Machine', brand: 'Bosch', category: 'Appliances', marketAnchor: 12999 },
 ];
-
-export const DEMO_SOURCES = [
-  { key: 'demo-source-a', name: 'Demo Source A — Big Box Retailer', reliabilityWeight: 0.85, bias: 1.0 },
-  { key: 'demo-source-b', name: 'Demo Source B — Online Marketplace', reliabilityWeight: 0.65, bias: 0.97 },
-  { key: 'demo-source-c', name: 'Demo Source C — Electronics Specialist', reliabilityWeight: 0.8, bias: 1.03 },
-  { key: 'demo-source-d', name: 'Demo Source D — Department Store', reliabilityWeight: 0.7, bias: 1.05 },
-  { key: 'demo-source-e', name: 'Demo Source E — Outlet/Clearance', reliabilityWeight: 0.55, bias: 0.9 },
-] as const;

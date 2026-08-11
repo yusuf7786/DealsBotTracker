@@ -1,13 +1,12 @@
 import type { SourceAdapter } from './types';
-import { demoAdapters } from './demoAdapter';
-import { exampleApiAdapter } from './exampleApiAdapter';
+import { ALL_ADAPTERS as RETAILER_ADAPTERS } from './retailers';
 
 /**
  * Central registry of every source adapter the scanner knows about. Add a
- * new retailer/marketplace by creating an adapter file next to this one and
- * pushing it into this array — nothing else in the app needs to change.
+ * new retailer/marketplace by defining it in retailers.ts (or a new file)
+ * and pushing it into this array — nothing else in the app needs to change.
  */
-export const ALL_ADAPTERS: SourceAdapter[] = [...demoAdapters, exampleApiAdapter];
+export const ALL_ADAPTERS: SourceAdapter[] = RETAILER_ADAPTERS;
 
 export function getAdapter(key: string): SourceAdapter | undefined {
   return ALL_ADAPTERS.find((a) => a.meta.key === key);

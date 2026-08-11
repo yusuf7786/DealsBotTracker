@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { prisma } from '../src/lib/prisma';
 import { DEFAULT_SETTINGS } from '../src/lib/settings';
-import { demoAdapters } from '../src/lib/sources/demoAdapter';
+import { ALL_ADAPTERS } from '../src/lib/sources/registry';
 import { runScanForSource } from '../src/lib/pipeline/scanSource';
 
 /**
@@ -31,7 +31,7 @@ async function main() {
   }
 
   console.log('Seeding demo catalogue via the real scan pipeline...');
-  for (const adapter of demoAdapters) {
+  for (const adapter of ALL_ADAPTERS) {
     const result = await runScanForSource(adapter.meta.key);
     console.log(`  ${adapter.meta.key}: ${result.productsChecked} checked, ${result.dealsDetected} deals`);
   }

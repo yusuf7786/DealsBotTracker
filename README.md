@@ -134,7 +134,8 @@ environment variables.
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | No | Browser push notifications | Generate with `npx web-push generate-vapid-keys` |
 | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_FROM`, `TWILIO_WHATSAPP_TO` | No | WhatsApp notifications (via Twilio's official WhatsApp Business API) | [twilio.com](https://www.twilio.com) — enable WhatsApp on a Twilio number |
 | `ANTHROPIC_API_KEY` | No | AI-generated one-sentence deal explanations (falls back to a rule-based sentence if unset) | [console.anthropic.com](https://console.anthropic.com) |
-| `EXAMPLE_RETAILER_API_KEY` | No | Template for adding one real retailer's official API | The retailer's developer program |
+| `AMAZON_ZA_ACCESS_KEY`, `AMAZON_ZA_SECRET_KEY`, `AMAZON_ZA_PARTNER_TAG` | No | Real Amazon ZA prices instead of simulated | Join the [Amazon Associates programme](https://affiliate-program.amazon.co.za/), then request PA-API 5.0 access |
+| `TAKEALOT_AFFILIATE_FEED_URL` | No | Real Takealot prices instead of simulated | Takealot affiliate programme (e.g. via Awin) or marketplace Seller API |
 
 **Every notification channel is optional and independently toggleable** —
 leave a channel's variables blank and it simply won't send until you fill
@@ -241,21 +242,35 @@ Settings aren't required — go to **Watchlist → + Add**, choose a type
 price limit, minimum discount %, and/or minimum deal score. Any one
 condition being met is enough to notify you.
 
-### Adding a new retailer/data source
+### Data sources
 
-Every source is a self-contained adapter implementing the same interface
-(`src/lib/sources/types.ts`) — the scanner, matching, pricing, and
-notification pipeline never need to change. To add a real one:
+This deployment tracks five named South African sources, defined in
+`src/lib/sources/retailers.ts`: **Amazon ZA, Takealot, Makro, Incredible
+Connection, and VodaBucks (VodaPay)**. Each is a self-contained adapter
+implementing the same interface (`src/lib/sources/types.ts`) — the
+scanner, matching, pricing, and notification pipeline never need to
+change regardless of which sources are active.
 
-1. Copy `src/lib/sources/exampleApiAdapter.ts` to a new file.
-2. Implement `fetchListings()` against that retailer/marketplace's
-   **official, permitted** API, feed, or affiliate program — this project
-   deliberately does not build scrapers that bypass CAPTCHAs, logins, or
-   anti-bot protections.
-3. Add any API key it needs to `.env` (never hard-code it).
-4. Register the adapter in `src/lib/sources/registry.ts`.
-5. It immediately shows up in Settings → Data Sources with its own
-   enable/disable toggle and scan frequency.
+None of them scrape a retailer's website directly, and VodaBucks isn't
+reverse-engineered out of the VodaPay app — this project doesn't build
+scrapers that bypass a site's Terms of Service or an app's access
+controls. Instead:
+
+- **Amazon ZA** and **Takealot** have a real, official integration path
+  (Amazon's Product Advertising API; Takealot's affiliate feed / Seller
+  API) — set the corresponding env vars (see the table above) and they'll
+  switch from simulated to live automatically, no code changes needed.
+- **Makro**, **Incredible Connection**, and **VodaBucks** have no
+  publicly documented developer API as far as is known, so they run in
+  simulated mode — clearly labelled "Simulated" in the app — until/unless
+  that changes. Every simulated deal's "View Deal" button still links to
+  a real, live search on that retailer's actual site so you can check the
+  current price yourself.
+
+To add a sixth source with a real API, add a new entry in
+`src/lib/sources/retailers.ts` using `createRetailerAdapter()` (see the
+existing five for the pattern) — it shows up in Settings → Data Sources
+automatically with its own enable/disable toggle and scan frequency.
 
 ---
 
@@ -312,7 +327,7 @@ src/app/            Next.js pages + REST API routes
 src/components/     UI components (deal cards, charts, nav, filters)
 src/lib/engines/    Market price, product matching, deal scoring, dedup,
                     false-deal filters, watchlist/alert-rule matching
-src/lib/sources/    Source adapter interface, demo adapter, adapter registry
+src/lib/sources/    Source adapter interface, the 5 tracked retailers, adapter registry
 src/lib/notifications/  Email, Telegram, Web Push, WhatsApp + dispatcher
 src/lib/pipeline/   The scan pipeline shared by the worker and "Scan now"
 worker/             Standalone background worker (BullMQ scheduler)
@@ -325,9 +340,10 @@ docker/             Dockerfiles for the app and the worker
 ## 13. What's not included (and why)
 
 - **Real retailer scrapers.** Only official/permitted integrations are
-  built (see `exampleApiAdapter.ts`) — this project does not bypass
-  CAPTCHAs, logins, or anti-bot protection. Demo Mode fills the gap until
-  you plug in real, permitted sources.
+  built (see `retailers.ts`) — this project does not bypass CAPTCHAs,
+  logins, or anti-bot protection, and doesn't reverse-engineer an
+  app-only surface like VodaBucks. Simulated mode fills the gap for
+  sources with no public API until one becomes available.
 - **Android/iOS native apps.** The app is a fully installable PWA (works
   offline-shell, has an app icon, push notifications) which covers "use it
   like a mobile app" without a separate native build pipeline. A future

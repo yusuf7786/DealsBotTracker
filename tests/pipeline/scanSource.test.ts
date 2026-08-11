@@ -4,7 +4,8 @@ import { runScanForSource } from '@/lib/pipeline/scanSource';
 
 /**
  * Integration test: runs the real pipeline (normalize -> upsert -> market
- * price -> score -> dedup -> deal) against the demo-source-a adapter using
+ * price -> score -> dedup -> deal) against the takealot adapter (in simulated
+ * mode, since no live API key is configured in tests) using
  * the real (local dev) Postgres database, then asserts the invariants the
  * spec cares about most: deals only exist when genuinely below market, and
  * duplicate scans don't create duplicate Deal rows per product.
@@ -28,7 +29,7 @@ describe('runScanForSource (integration)', () => {
   });
 
   it('populates products, listings and (for some products) deals', async () => {
-    const result = await runScanForSource('demo-source-a');
+    const result = await runScanForSource('takealot');
     expect(result.status).not.toBe('failed');
     expect(result.productsChecked).toBeGreaterThan(0);
 
@@ -51,7 +52,7 @@ describe('runScanForSource (integration)', () => {
 
   it('re-scanning the same source does not duplicate listings', async () => {
     const before = await prisma.listing.count();
-    await runScanForSource('demo-source-a');
+    await runScanForSource('takealot');
     const after = await prisma.listing.count();
     expect(after).toBe(before);
   });

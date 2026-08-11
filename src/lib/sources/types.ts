@@ -28,6 +28,8 @@ export interface RawListing {
   isBundle?: boolean;
   imageUrl?: string;
   region?: string;
+  /** True when this listing is simulated (no real retailer API connected yet) rather than live data. */
+  isSimulated?: boolean;
 }
 
 export interface SourceAdapterMeta {
@@ -44,8 +46,10 @@ export interface SourceAdapterMeta {
 
 export interface SourceAdapter {
   meta: SourceAdapterMeta;
-  /** Returns true if the adapter has everything it needs to run (e.g. an API key). */
+  /** Returns true if the adapter will produce any data at all right now (real API OR demo fallback). */
   isConfigured(): boolean;
+  /** Returns true only if a real retailer API credential is present — never true from demo fallback. */
+  hasRealCredentials(): boolean;
   /** Fetch the current catalogue snapshot. Must be well-behaved: rate-limited, cached, deduped upstream. */
   fetchListings(): Promise<RawListing[]>;
 }

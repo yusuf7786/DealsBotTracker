@@ -46,7 +46,7 @@ export async function runScanForSource(sourceKey: string): Promise<ScanResult> {
       scanFrequencyMinutes: adapter.meta.defaultScanFrequencyMinutes,
       reliabilityWeight: adapter.meta.reliabilityWeight,
       requiresApiKey: adapter.meta.requiresApiKey,
-      apiKeyConfigured: adapter.isConfigured(),
+      apiKeyConfigured: adapter.hasRealCredentials(),
     },
   });
 
@@ -119,6 +119,7 @@ export async function runScanForSource(sourceKey: string): Promise<ScanResult> {
             isCouponRequired: raw.isCouponRequired ?? false,
             isFinancingPrice: raw.isFinancingPrice ?? false,
             isBundle: raw.isBundle ?? false,
+            isSimulated: raw.isSimulated ?? false,
             active: true,
             lastCheckedAt: new Date(),
           },
@@ -140,6 +141,7 @@ export async function runScanForSource(sourceKey: string): Promise<ScanResult> {
             isCouponRequired: raw.isCouponRequired ?? false,
             isFinancingPrice: raw.isFinancingPrice ?? false,
             isBundle: raw.isBundle ?? false,
+            isSimulated: raw.isSimulated ?? false,
             reliabilityWeight: adapter.meta.reliabilityWeight,
           },
         });

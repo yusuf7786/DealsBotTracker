@@ -37,6 +37,7 @@ export default function SearchPage() {
       sellerName: deal.bestListing.seller,
       sellerRating: deal.bestListing.sellerRating,
       currency: deal.product.currency,
+      isSimulated: deal.bestListing.isSimulated,
     };
   }
 
