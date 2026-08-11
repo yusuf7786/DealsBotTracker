@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { serialize } from '@/lib/api/serialize';
 import { ALL_ADAPTERS } from '@/lib/sources/registry';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   // Ensure every registered adapter has a Source row (in case the worker hasn't run yet).
   for (const adapter of ALL_ADAPTERS) {

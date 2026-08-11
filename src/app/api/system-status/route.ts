@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { serialize } from '@/lib/api/serialize';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const [
     productCount,

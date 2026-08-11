@@ -63,6 +63,55 @@ npm run build && npm run start   # the web app, on :3000
 npm run worker:start             # the background scanner, in a second terminal
 ```
 
+### Installing on your phone (free-tier hosting, no server to manage)
+
+This gets you a real HTTPS URL you can open on your phone and install as an
+app (Add to Home Screen) — no VPS, no credit card. It uses:
+
+- **[Vercel](https://vercel.com)** — hosts the Next.js app for free
+- **[Neon](https://neon.tech)** — free serverless Postgres
+- **GitHub Actions** — runs the background scan every 15 minutes on a free
+  schedule, standing in for the always-on worker process (serverless hosts
+  can't run a persistent worker, so this repo ships a cron-safe endpoint,
+  `/api/cron/scan`, plus a ready-made workflow at
+  `.github/workflows/scan-cron.yml`, for exactly this case)
+
+Steps:
+
+1. **Database** — create a free project at [neon.tech](https://neon.tech),
+   copy its connection string (starts with `postgresql://...`).
+2. **Deploy** — go to [vercel.com/new](https://vercel.com/new), import this
+   GitHub repo, and add these Environment Variables when prompted:
+   - `DATABASE_URL` — the Neon connection string from step 1
+   - `AUTH_SECRET` — output of `openssl rand -base64 32`
+   - `ADMIN_EMAIL` / `ADMIN_PASSWORD` — your login for the app
+   - `APP_URL` — your Vercel URL, e.g. `https://your-app.vercel.app`
+   - `DEMO_MODE` — `true`
+   - `CRON_SECRET` — output of `openssl rand -base64 32` (a second, different
+     random string — this authorizes the scheduled scan job)
+   - Any notification variables you want (see the table below) — optional
+   
+   Click Deploy. Prisma migrations run automatically on first request via
+   the app's own startup; if you'd rather run them explicitly, run
+   `npx prisma migrate deploy` locally with `DATABASE_URL` set to your Neon
+   string first.
+3. **Schedule the scanner** — in your GitHub repo, go to **Settings → Secrets
+   and variables → Actions** and add two repository secrets:
+   - `APP_URL` — same Vercel URL as above
+   - `CRON_SECRET` — same value you set on Vercel
+   
+   The included workflow (`.github/workflows/scan-cron.yml`) then runs every
+   15 minutes automatically. You can also trigger it immediately from the
+   repo's **Actions** tab (`Run workflow`) instead of waiting.
+4. **Open it on your phone** — visit your Vercel URL in your phone's
+   browser, log in, then use the browser menu → **Add to Home Screen**. It
+   installs with its own icon and opens full-screen, like a native app.
+
+Redis/BullMQ aren't used in this setup at all — the app has no Redis
+dependency in its own runtime, only the standalone `worker/` process does,
+and this deployment path replaces that worker with the scheduled GitHub
+Actions call instead.
+
 ---
 
 ## 2. Environment variables
@@ -74,7 +123,8 @@ environment variables.
 | Variable | Required? | What it's for | Where to get it |
 |---|---|---|---|
 | `DATABASE_URL` | Yes | PostgreSQL connection string | Provided automatically by `docker-compose.yml` |
-| `REDIS_URL` | Yes | Redis connection for the background scanner queue | Provided automatically by `docker-compose.yml` |
+| `REDIS_URL` | Only for the Docker/self-hosted worker | Redis connection for the background scanner queue | Provided automatically by `docker-compose.yml`; not needed on the Vercel+Neon free-tier path |
+| `CRON_SECRET` | Only for the Vercel/serverless path | Authorizes the scheduled `/api/cron/scan` endpoint that replaces the always-on worker | Generate with `openssl rand -base64 32` |
 | `AUTH_SECRET` | Yes | Signs your login session cookie | Generate with `openssl rand -base64 32` |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Yes | Your login credentials for the app | You choose these |
 | `APP_URL` | Yes | Base URL used in notification links | `http://localhost:3000`, or your real domain |
