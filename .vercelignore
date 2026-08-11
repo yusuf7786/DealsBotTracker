@@ -1,0 +1,9 @@
+# These are only used by the Docker/self-hosted deployment path (see
+# docker-compose.yml) and shouldn't be scanned or bundled by Vercel's build -
+# the worker/ folder in particular is a standalone Node entrypoint that has
+# confused Vercel's zero-config function detection.
+worker/
+tests/
+scripts/
+docker/
+docker-compose.yml
