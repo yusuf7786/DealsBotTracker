@@ -1,0 +1,30 @@
+name: Scheduled deal scan
+
+# Stands in for the always-on background worker on serverless deployments
+# (e.g. Vercel free tier) that can't run a persistent BullMQ process. Calls
+# the app's cron-protected scan endpoint on a schedule instead — same
+# pipeline, just triggered externally.
+#
+# Requires two repository secrets (Settings -> Secrets and variables ->
+# Actions):
+#   APP_URL      e.g. https://your-app.vercel.app
+#   CRON_SECRET  must match the CRON_SECRET env var set on the deployment
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger scan
+        run: |
+          curl --fail --show-error --silent \
+            -X POST "${APP_URL%/}/api/cron/scan" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "content-type: application/json"
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
