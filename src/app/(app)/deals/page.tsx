@@ -27,6 +27,7 @@ function toDealCard(deal: any): DealCardData {
     sellerRating: deal.bestListing.sellerRating,
     currency: deal.product.currency,
     isSimulated: deal.bestListing.isSimulated,
+    createdAt: deal.createdAt.toISOString(),
   };
 }
 

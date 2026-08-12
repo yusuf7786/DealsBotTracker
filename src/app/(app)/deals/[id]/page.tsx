@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { toNumber, formatCurrency } from '@/lib/utils/currency';
 import { PriceHistoryChart } from '@/components/PriceHistoryChart';
 import { explainDeal } from '@/lib/engines/aiExplain';
+import { timeAgo } from '@/lib/utils/time';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,7 +57,10 @@ export default async function DealDetailPage({ params }: { params: { id: string 
       </Link>
 
       <div>
-        <span className="rounded-full bg-accent/15 px-2.5 py-1 text-[11px] font-semibold text-accent">{TIER_LABEL[deal.tier]}</span>
+        <div className="flex items-center gap-2">
+          <span className="rounded-full bg-accent/15 px-2.5 py-1 text-[11px] font-semibold text-accent">{TIER_LABEL[deal.tier]}</span>
+          <span className="text-[11px] text-muted">Posted {timeAgo(deal.createdAt)}</span>
+        </div>
         <h1 className="mt-2 text-xl font-semibold leading-snug">
           {deal.product.brand} {deal.product.productName}
         </h1>

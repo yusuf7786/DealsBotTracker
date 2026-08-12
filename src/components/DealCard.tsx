@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { clsx } from 'clsx';
 import { formatCurrency } from '@/lib/utils/currency';
+import { timeAgo } from '@/lib/utils/time';
 
 export interface DealCardData {
   id: string;
@@ -17,6 +18,7 @@ export interface DealCardData {
   sellerRating: number | null;
   currency: string;
   isSimulated: boolean;
+  createdAt: string;
 }
 
 const TIER_META: Record<DealCardData['tier'], { label: string; className: string; emoji: string }> = {
@@ -67,6 +69,7 @@ export function DealCard({ deal }: { deal: DealCardData }) {
         <span>{deal.sellerName}</span>
         {deal.sellerRating !== null && <span>★ {deal.sellerRating.toFixed(1)}</span>}
       </div>
+      <p className="mt-1 text-[11px] text-muted">Posted {timeAgo(deal.createdAt)}</p>
     </Link>
   );
 }

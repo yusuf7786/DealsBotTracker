@@ -11,18 +11,20 @@ export interface RetailerAdapterConfig {
   priceBias: number;
   /** Builds a real, live URL to that product on the retailer's actual site (a search results page is fine). */
   buildProductUrl: (productTitle: string) => string;
-  /** Env var holding the real API credential, if an official API integration exists for this retailer. */
+  /** Primary env var holding the real API credential, if an official API integration exists for this retailer. */
   apiKeyEnvVar?: string;
+  /** Any additional env vars ALSO required before the real API is considered configured (e.g. Amazon needs 3). */
+  additionalRequiredEnvVars?: string[];
   /**
-   * Real API implementation, called only when apiKeyEnvVar is set and present. Left undefined for
+   * Real API implementation, called only when all required env vars are present. Left undefined for
    * retailers with no known public API (see the adapter definitions in retailers.ts for why).
    */
-  fetchReal?: (apiKey: string) => Promise<RawListing[]>;
+  fetchReal?: () => Promise<RawListing[]>;
 }
 
 /**
  * Builds a SourceAdapter for one named retailer. Behaviour:
- *   - If a real API key is configured AND a real fetch implementation exists, use it.
+ *   - If all required real-API env vars are present AND a real fetch implementation exists, use it.
  *   - Otherwise, in DEMO_MODE, fall back to a simulated snapshot (clearly flagged
  *     `isSimulated: true` on every listing) so the app stays usable until real
  *     credentials are added.
@@ -40,8 +42,11 @@ export function createRetailerAdapter(config: RetailerAdapterConfig): SourceAdap
     apiKeyEnvVar: config.apiKeyEnvVar,
   };
 
-  const hasRealCredentials = () =>
-    Boolean(config.apiKeyEnvVar && process.env[config.apiKeyEnvVar] && config.fetchReal);
+  const hasRealCredentials = () => {
+    if (!config.apiKeyEnvVar || !config.fetchReal) return false;
+    const requiredVars = [config.apiKeyEnvVar, ...(config.additionalRequiredEnvVars ?? [])];
+    return requiredVars.every((v) => Boolean(process.env[v]));
+  };
 
   return {
     meta,
@@ -51,9 +56,8 @@ export function createRetailerAdapter(config: RetailerAdapterConfig): SourceAdap
     },
     hasRealCredentials,
     async fetchListings(): Promise<RawListing[]> {
-      const apiKey = config.apiKeyEnvVar ? process.env[config.apiKeyEnvVar] : undefined;
-      if (apiKey && config.fetchReal) {
-        return config.fetchReal(apiKey);
+      if (hasRealCredentials() && config.fetchReal) {
+        return config.fetchReal();
       }
       if (process.env.DEMO_MODE === 'true') {
         return generateSimulatedListings({

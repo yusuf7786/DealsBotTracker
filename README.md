@@ -244,33 +244,46 @@ condition being met is enough to notify you.
 
 ### Data sources
 
-This deployment tracks five named South African sources, defined in
-`src/lib/sources/retailers.ts`: **Amazon ZA, Takealot, Makro, Incredible
-Connection, and VodaBucks (VodaPay)**. Each is a self-contained adapter
-implementing the same interface (`src/lib/sources/types.ts`) — the
-scanner, matching, pricing, and notification pipeline never need to
-change regardless of which sources are active.
+This deployment tracks two sources, defined in `src/lib/sources/retailers.ts`:
+**Amazon ZA** and **Takealot** — the only two with a real, accessible
+official API/feed. Each is a self-contained adapter implementing the same
+interface (`src/lib/sources/types.ts`) — the scanner, matching, pricing,
+and notification pipeline never need to change regardless of which
+sources are active.
 
-None of them scrape a retailer's website directly, and VodaBucks isn't
-reverse-engineered out of the VodaPay app — this project doesn't build
-scrapers that bypass a site's Terms of Service or an app's access
-controls. Instead:
+Both have a real integration wired up and ready to go, not just a
+template:
 
-- **Amazon ZA** and **Takealot** have a real, official integration path
-  (Amazon's Product Advertising API; Takealot's affiliate feed / Seller
-  API) — set the corresponding env vars (see the table above) and they'll
-  switch from simulated to live automatically, no code changes needed.
-- **Makro**, **Incredible Connection**, and **VodaBucks** have no
-  publicly documented developer API as far as is known, so they run in
-  simulated mode — clearly labelled "Simulated" in the app — until/unless
-  that changes. Every simulated deal's "View Deal" button still links to
-  a real, live search on that retailer's actual site so you can check the
-  current price yourself.
+- **Amazon ZA** (`src/lib/sources/amazonPaApi.ts`) — signs and calls the
+  real Amazon Product Advertising API (PA-API 5.0) `SearchItems`
+  operation once `AMAZON_ZA_ACCESS_KEY`, `AMAZON_ZA_SECRET_KEY`, and
+  `AMAZON_ZA_PARTNER_TAG` are all set. **Heads up:** Amazon rate-limits
+  brand-new Associates accounts very aggressively (sometimes ~1
+  request/hour) until you have 3 qualifying sales within 180 days — that's
+  Amazon's policy, not a bug here. If requests fail with a host/region
+  error, check `AMAZON_ZA_HOST`/`AMAZON_ZA_REGION` against Amazon's
+  [locale reference](https://webservices.amazon.com/paapi5/documentation/locale-reference.html).
+- **Takealot** (`src/lib/sources/takealotFeed.ts`) — parses a CSV product
+  feed from `TAKEALOT_AFFILIATE_FEED_URL` (obtained through Takealot's
+  affiliate programme, commonly via a network like Awin). The column-name
+  matching is flexible (title/name/product_name, price/current_price,
+  etc.) but hasn't been verified against a real feed sample — if it
+  returns 0 listings, check the app logs for a "column names likely need
+  adjusting" warning and adjust `COLUMN_ALIASES` in that file to match
+  your actual feed's headers.
 
-To add a sixth source with a real API, add a new entry in
-`src/lib/sources/retailers.ts` using `createRetailerAdapter()` (see the
-existing five for the pattern) — it shows up in Settings → Data Sources
-automatically with its own enable/disable toggle and scan frequency.
+Until those env vars are set, both run in simulated mode — clearly
+labelled "Simulated" in the app, with "Search on Amazon ZA"/"Search on
+Takealot" instead of "View Deal" on the button, since there's no real
+product URL to link to yet. Once real credentials work, listings switch
+to real prices with a direct link straight to the actual product page
+(exactly what the API/feed returns), and the button goes back to saying
+"View Deal".
+
+To add another source with a real API, add a new entry in
+`src/lib/sources/retailers.ts` using `createRetailerAdapter()` — it shows
+up in Settings → Data Sources automatically with its own enable/disable
+toggle and scan frequency.
 
 ---
 
